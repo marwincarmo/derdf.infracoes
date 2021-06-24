@@ -32,7 +32,7 @@ base_bruta %>% dplyr::count(descricao) %>% tibble::view("descricao")
 # a infracao cometida. Ambas variáveis possuem 142 tipos diferentes, o que indica
 # que cada código corresponde a uma descricao individual. Tudo ok com estas duas colunas
 
-base_bruta %>% dplyr::count(tipo_infrator) %>% tibble::view("tipo_infrator")
+base_bruta %>% dplyr::count(tipo_infrator)
 
 # 3 tipos distintos de infratores, sendo condutor maioria absoluta
 # também nada a consertar nesta coluna
@@ -193,7 +193,7 @@ base_sentido_arrumado2 <- base_sentido_arrumado %>%
     dplyr::mutate( # removendo os acentos para padronizar
         auinf_local_referencia = abjutils::rm_accent(toupper(auinf_local_referencia)))
 
-base_sentido_arrumado3 %>%
+base_sentido_arrumado2 %>%
     count(auinf_local_referencia) %>%
     view("referencia3")
 
@@ -205,7 +205,7 @@ base_sentido_arrumado3 %>%
 base_sentido_arrumado3 <- base_sentido_arrumado2 %>%
   mutate(auinf_local_referencia = dplyr::case_when(
   stringr::str_detect(auinf_local_referencia,
-                      regex("SENT. N. BAND / RIACHO FUNDO|SENT. N. BAND. / RIACHO FUNDO")) ~ "SENT. N. BAND / RIACHO FUNDO",
+                      regex("SENT. N. BAND / RIACHO FUNDO|SENT. N. BAND. / RIACHO FUNDO")) ~ "SENTIDO N. BAND / RIACHO FUNDO",
   stringr::str_detect(auinf_local_referencia,
                       regex("SENTIDO BALAO DO TORTO|SENTIDO BALAO DO TORTO.")) ~ "SENTIDO BALAO DO TORTO",
   stringr::str_detect(auinf_local_referencia,
@@ -217,18 +217,58 @@ base_sentido_arrumado3 <- base_sentido_arrumado2 %>%
   stringr::str_detect(auinf_local_referencia,
                       regex("SENTIDO DECRESCENTE|SENTIDO DECRESCENTE.")) ~ "SENTIDO DECRESCENTE",
   stringr::str_detect(auinf_local_referencia,
-                      regex("SENTIDO NORTE  . (ALT. CANDANGOLANDIA) (VIA MARGINAL)")) ~ "SENTIDO NORTE - (ALT. CANDANGOLANDIA) (VIA MARGINAL)",
+                      regex("SENTIDO NORTE  \u0096 \\(ALT. CANDANGOLANDIA\\) \\(VIA MARGINAL\\)|SENTIDO NORTE  - \\(ALT. CANDANGOLANDIA\\) \\(VIA MARGINAL\\)")) ~ "SENTIDO NORTE - (ALT. CANDANGOLANDIA) (VIA MARGINAL)",
   stringr::str_detect(auinf_local_referencia,
-                      regex("SENTIDO NORTE  . (ALT. CANDANGOLANDIA) (VIA PRINCIPAL)")) ~ "SENTIDO NORTE - (ALT. CANDANGOLANDIA) (VIA PRINCIPAL)",
+                      regex("SENTIDO NORTE  \u0096 \\(ALT. CANDANGOLANDIA\\) \\(VIA PRINCIPAL\\)|SENTIDO NORTE  - \\(ALT. CANDANGOLANDIA\\) \\(VIA PRINCIPAL\\)")) ~ "SENTIDO NORTE - (ALT. CANDANGOLANDIA) (VIA PRINCIPAL)",
   stringr::str_detect(auinf_local_referencia,
-                      "SENTIDO BIDIRECIONAL ( PISTA SUL)") ~ "SENTIDO BIDIRECIONAL (PISTA SUL)",
+                      "SENTIDO BIDIRECIONAL \\( PISTA SUL\\)") ~ "SENTIDO BIDIRECIONAL (PISTA SUL)",
+  stringr::str_detect(auinf_local_referencia,
+                      "SENTIDO BIDIRECIONAL \\( PISTA NORTE\\)") ~ "SENTIDO BIDIRECIONAL (PISTA NORTE)",
+  stringr::str_detect(auinf_local_referencia,
+                      "SENTIDO DF-047 \\(ASA SUL") ~ "SENTIDO DF-047 (ASA SUL)",
   TRUE ~ auinf_local_referencia
-   ))
+   ),
+  # uma ultima arrumada, trocando SENT E SENT. por SENTIDO para padronizar
+  auinf_local_referencia = stringr::str_replace(auinf_local_referencia, "SENT( )", "SENTIDO "),
+  auinf_local_referencia = stringr::str_replace(auinf_local_referencia, "SENT\\.", "SENTIDO")
+  )
 
-#SENTIDO BIDIRECIONAL ( PISTA SUL)
-"SENTIDO NORTE \u0096 (ALT. CANDANGOLANDIA) (VIA MARGINAL)"
-base_sentido_arrumado2 %>%
-    dplyr::mutate(auinf_local_referencia = dplyr::case_when(stringr::str_detect(auinf_local_referencia, regex("SENT. N. BAND. / RIACHO FUNDO")) ~ "SENT. N. BAND / RIACHO FUNDO"))
+base_sentido_arrumado3 %>%
+    count(auinf_local_referencia) %>%
+    view("referencia4")
+
+# nesta base agora todos os valores que sereferem a mesma cosia estão agrupados
+# com o mesmo nome. mas ainda há alguns problemas mais esteticos, como
+# palavras seguidas de outra entre parentesis mas sem espaço entre elas
+# e umas com mais de um espaço
+# uma base de outro registro mensal pode pedir que lidemos com isto,
+# então vamos criar funções para resolver esta questão
+
+inserir_espaco_parentesis <- function(x) {
+    antes <- stringr::str_extract(x, "[^\\s]+\\(") %>% str_remove("\\(")
+    depois <- stringr::str_extract(x, "\\(.+")
+    nova <- paste0(antes, " ", depois)
+    nova
+}
+
+retirar_espaco_parentesis <- inserir_espaco_parentesis <- function(x) {
+    antes <- stringr::str_extract(x, ".+\\(") %>%
+        stringr::str_remove("\\(") %>%
+        stringr::str_wrap()
+    depois <- stringr::str_extract(x, "\\(.+")
+    nova <- paste0(antes, " ", depois)
+    nova
+}
+
+base_sentido_arrumado3 <- base_sentido_arrumado3 %>%
+    dplyr::mutate(auinf_local_referencia = dplyr::case_when(
+        stringr::str_detect(auinf_local_referencia,
+                            # transformando os valores que nao tem espaço entre a palavra e parentesis
+                            "[^\\s]+\\(") ~ inserir_espaco_parentesis(auinf_local_referencia),
+        stringr::str_detect(auinf_local_referencia,
+                            # transformando os valores que tem espaço duplo entre a palavra e parentesis
+                            "[\\s]{2,}\\(") ~ retirar_espaco_parentesis(auinf_local_referencia),
+        TRUE ~ auinf_local_referencia))
 
 
 ### 2.3.2) Km da pista ----
