@@ -56,3 +56,36 @@ implementação de fiscalização e políticas de prevenção de acidentes na
 estrada.
 
 ### Objetivos da faxina
+
+### Visualização
+
+``` r
+library(tidyverse)
+library(derdf.infracoes)
+
+base <- derdf.infracoes::base_infracoes_derdf_abril_21
+```
+
+``` r
+gravidade_veic <- base %>% 
+  dplyr::group_by(tipo_veiculo, grav_tipo) %>% 
+  dplyr::tally() %>% 
+  dplyr::group_by(tipo_veiculo) %>% 
+  dplyr::mutate(n_veic = sum(n)) %>% arrange(desc(n_veic)) %>% 
+  # selecionando os principais veiculos registrados
+  dplyr::filter(n_veic > 1000) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(tipo_veiculo = forcats::fct_reorder(tipo_veiculo, n_veic, sum),
+                grav_tipo = factor(grav_tipo, levels = c("Leve", "Média", "Grave", "Gravíssima"))) 
+```
+
+``` r
+gravidade_veic %>% 
+  ggplot() + 
+  scale_colour_brewer(palette = "YlOrRd") +
+  geom_col(aes(x = tipo_veiculo, y = n, fill = grav_tipo), position = "dodge") +
+  coord_flip() +
+  theme_minimal(12)
+```
+
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />

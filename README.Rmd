@@ -40,3 +40,36 @@ A base escolhida foi o [Relatório de Infrações de Trânsito](https://dados.go
 A página do DER-DF carece de relatórios detalhados sobre o registro de infrações nas rodovias do estado. A análise cuidadosa destas informações pode auxiliar na identificação da frequência e gravidade de infrações de trânsito em cada rodovia do Distrito Federal. As Leis de Trânsito fornecem normas e condutas para uma boa convivência no trânsito e segurança dos transuentes. Identificar as infrações cometidas em cada rodovia específica pode fornecer informações valiosas para a implementação de fiscalização e políticas de prevenção de acidentes na estrada.
 
 ### Objetivos da faxina
+
+### Visualização
+
+```{r message=FALSE}
+library(tidyverse)
+library(derdf.infracoes)
+
+base <- derdf.infracoes::base_infracoes_derdf_abril_21
+```
+
+```{r}
+gravidade_veic <- base %>% 
+  dplyr::group_by(tipo_veiculo, grav_tipo) %>% 
+  dplyr::tally() %>% 
+  dplyr::group_by(tipo_veiculo) %>% 
+  dplyr::mutate(n_veic = sum(n)) %>% arrange(desc(n_veic)) %>% 
+  # selecionando os principais veiculos registrados
+  dplyr::filter(n_veic > 1000) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::mutate(tipo_veiculo = forcats::fct_reorder(tipo_veiculo, n_veic, sum),
+                grav_tipo = factor(grav_tipo, levels = c("Leve", "Média", "Grave", "Gravíssima"))) 
+
+```
+
+```{r}
+gravidade_veic %>% 
+  ggplot() + 
+  scale_colour_brewer(palette = "YlOrRd") +
+  geom_col(aes(x = tipo_veiculo, y = n, fill = grav_tipo), position = "dodge") +
+  coord_flip() +
+  theme_minimal(12)
+```
+
