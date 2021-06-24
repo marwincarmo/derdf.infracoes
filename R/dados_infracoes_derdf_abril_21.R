@@ -1,6 +1,6 @@
 #' Autos de Infracao DER-DF - Abril/ 2021.
 #'
-#' Um conjunto de dados contendo ifnormacoes a respeito das infracoes registradas
+#' Um conjunto de dados contendo informacoes a respeito das infracoes registradas
 #'  pelo Departamento de Estradas de Rodagem do Distrito Federal no mes de Abril de 2021.
 #'
 #' @format Um objeto de classe `tbl_df` (inherits from tbl, data.frame) com 82223 linhas e 15 colunas.
