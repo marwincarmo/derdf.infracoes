@@ -5,7 +5,7 @@
 \alias{base_infracoes_derdf_abril_21}
 \title{Autos de Infracao DER-DF - Abril/ 2021.}
 \format{
-Um objeto de classe \code{tbl_df} (inherits from tbl, data.frame) com 82223 linhas and 15 colunas.
+Um objeto de classe \code{tbl_df} (inherits from tbl, data.frame) com 82223 linhas e 15 colunas.
 \describe{
 \item{tipo_infracao}{Codigo da infracao}
 \item{descricao}{Descricao da infracao}
@@ -32,7 +32,7 @@ Um objeto de classe \code{tbl_df} (inherits from tbl, data.frame) com 82223 linh
 base_infracoes_derdf_abril_21
 }
 \description{
-Um conjunto de dados contendo ifnormacoes a respeito das infracoes registradas
+Um conjunto de dados contendo informacoes a respeito das infracoes registradas
 pelo Departamento de Estradas de Rodagem do Distrito Federal no mes de Abril de 2021.
 }
 \keyword{datasets}
