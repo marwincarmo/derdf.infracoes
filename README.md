@@ -4,6 +4,9 @@
 # derdf.infracoes
 
 <!-- badges: start -->
+
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 Este pacote contém os dados de Autos de Infração registrados pelo
@@ -37,7 +40,7 @@ administração pública.
 A base escolhida foi o [Relatório de Infrações de
 Trânsito](https://dados.gov.br/dataset/infracoes-transito) do
 [Departamento de Estradas de Rodagem do Distrito
-Federal](http://www.der.df.gov.br/) (DER-DF), do mês de Abril de 202.
+Federal](http://www.der.df.gov.br/) (DER-DF), do mês de Abril de 2021.
 Estes dados foram escolhidos em uma busca casual por bases de dados
 “bagunçadas” e que poderiam fornecer informações importantes após o
 tratamento apropriado.
