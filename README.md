@@ -67,11 +67,12 @@ base <- derdf.infracoes::base_infracoes_derdf_abril_21
 ```
 
 ``` r
+
 gravidade_veic <- base %>% 
   dplyr::group_by(tipo_veiculo, grav_tipo) %>% 
   dplyr::tally() %>% 
   dplyr::group_by(tipo_veiculo) %>% 
-  dplyr::mutate(n_veic = sum(n)) %>% arrange(desc(n_veic)) %>% 
+  dplyr::mutate(n_veic = sum(n)) %>%  
   # selecionando os principais veiculos registrados
   dplyr::filter(n_veic > 1000) %>% 
   dplyr::ungroup() %>% 
@@ -81,11 +82,43 @@ gravidade_veic <- base %>%
 
 ``` r
 gravidade_veic %>% 
-  ggplot() + 
-  scale_colour_brewer(palette = "YlOrRd") +
-  geom_col(aes(x = tipo_veiculo, y = n, fill = grav_tipo), position = "dodge") +
+  ggplot(aes(x = tipo_veiculo, y = n, fill = grav_tipo)) + 
+  scale_fill_viridis_d(option = "A", begin = .9, end = .4) +
+  geom_col(position = "dodge") +
   coord_flip() +
-  theme_minimal(12)
+  labs(x = "Veículo", y = "Quantidade", fill = "Infração") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme_minimal(12) +
+  theme(legend.position = c(.9,.5))
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+
+``` r
+gravidade_rodovia <- base %>% 
+  dplyr::group_by(auinf_local_rodovia_codigo, grav_tipo) %>% 
+  dplyr::tally() %>% 
+  # retirando NA e Vias de Ligação e selecionando as 
+  # rodovias com mais de 1000 registros de infração
+  filter(!is.na(auinf_local_rodovia_codigo),
+         !stringr::str_detect(auinf_local_rodovia_codigo, "VIA.")) %>% 
+  dplyr::group_by(auinf_local_rodovia_codigo) %>% 
+  dplyr::mutate(n_rodovia = sum(n)) %>%  
+  # selecionando os principais veiculos registrados
+  dplyr::ungroup() %>% 
+  dplyr::filter(n_rodovia > 1000) %>% 
+  dplyr::mutate(auinf_local_rodovia_codigo = forcats::fct_reorder(auinf_local_rodovia_codigo, n_rodovia),
+                grav_tipo = factor(grav_tipo, levels = c("Leve", "Média", "Grave", "Gravíssima"))) 
+  
+gravidade_rodovia %>% 
+  ggplot(aes(x = auinf_local_rodovia_codigo, y = n, fill = grav_tipo)) + 
+  scale_fill_viridis_d(option = "A", begin = .9, end = .4) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Rodovia", y = "Quantidade", fill = "Infração") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme_minimal(12) +
+  theme(legend.position = c(.9,.5))
+```
+
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
