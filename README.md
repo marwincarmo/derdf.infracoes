@@ -83,30 +83,56 @@ fornecer uma localização válida.
 
 ### Fluxo da faxina: objetivos do script
 
-### Visualização
+O
+[script](https://github.com/marwincarmo/derdf.infracoes/blob/master/data-raw/DATASET.R)
+com os códigos de transformação da base segue o seguinte fluxo:
+
+1.  Arrumação da coluna `tipo_veiculos` para padronizar o registro tipos
+    de veículos infratores
+
+2.  Passa os valores da coluna `cometimento` com o dia de registro da
+    infração do formato character para o formato date.
+
+3.  Extração dos dados de referência concatenados na coluna
+    `auinf_local_rodovia` para a coluna agrupadora de cada informação
+    específica. Primeiro se buscou a informação de sentido da rodovia,
+    seguido da quilometragem do local da infração, o nome da rodovia e
+    as informações complementares. Cada etapa seguiu uma sequência de
+    extração, manipulação e padronização das informações.
+
+### Análises
+
+O detalhamento do local das infrações possibilitado pela faxina na base
+original permite que se analise com detalhes informações sobre
+categorias de veículos e tipos de infratores, bem como possibilita a
+identificação de pontos específicos das rodovias onde se observam as
+infrações e a gravidade das mesmas. O formato original da base de dados,
+impossibilitava que o usuário tivesse acesso a este tipo de informação
+detalhada.
+
+Com a base “limpa” algumas investigações se tornam possíveis:
+
+#### Infrações por tipo de veículo
 
 ``` r
+# carregando a base de dados e os pacotes para manipulação e visualização dos dados
 library(tidyverse)
 library(derdf.infracoes)
-
 base <- derdf.infracoes::base_infracoes_derdf_abril_21
 ```
 
 ``` r
-
 gravidade_veic <- base %>% 
   dplyr::group_by(tipo_veiculo, grav_tipo) %>% 
   dplyr::tally() %>% 
   dplyr::group_by(tipo_veiculo) %>% 
   dplyr::mutate(n_veic = sum(n)) %>%  
-  # selecionando os principais veiculos registrados
+  # selecionando os veiculos com maiores números de registro
   dplyr::filter(n_veic > 1000) %>% 
   dplyr::ungroup() %>% 
   dplyr::mutate(tipo_veiculo = forcats::fct_reorder(tipo_veiculo, n_veic, sum),
-                grav_tipo = factor(grav_tipo, levels = c("Leve", "Média", "Grave", "Gravíssima"))) 
-```
+                grav_tipo = factor(grav_tipo, levels = c("Leve", "Média", "Grave", "Gravíssima")))
 
-``` r
 gravidade_veic %>% 
   ggplot(aes(x = tipo_veiculo, y = n, fill = grav_tipo)) + 
   scale_fill_viridis_d(option = "A", begin = .9, end = .4) +
@@ -118,20 +144,28 @@ gravidade_veic %>%
   theme(legend.position = c(.9,.5))
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+
+É possível verificar que os automóveis são o tipo de veículo com o maior
+registro de infrações, seguindo uma lógica, visto ser este o tipo de
+veículo em maior número nas estradas. Também vemos que as infrações de
+gravidade Média são mais frequentes para todos os principais tipos de
+veículos analisados e que, em geral, infrações Graves e Gravíssimas tem
+frequência semelhante.
+
+#### Infrações por rodovia
 
 ``` r
 gravidade_rodovia <- base %>% 
   dplyr::group_by(auinf_local_rodovia_codigo, grav_tipo) %>% 
   dplyr::tally() %>% 
-  # retirando NA e Vias de Ligação e selecionando as 
-  # rodovias com mais de 1000 registros de infração
+  # retirando NA e Vias de Ligação
   dplyr::filter(!is.na(auinf_local_rodovia_codigo),
          !stringr::str_detect(auinf_local_rodovia_codigo, "VIA.")) %>% 
   dplyr::group_by(auinf_local_rodovia_codigo) %>% 
   dplyr::mutate(n_rodovia = sum(n)) %>%  
-  # selecionando os principais veiculos registrados
   dplyr::ungroup() %>% 
+  # selecionando as principais rodovias registradas
   dplyr::filter(n_rodovia > 1000) %>% 
   dplyr::mutate(auinf_local_rodovia_codigo = forcats::fct_reorder(auinf_local_rodovia_codigo, n_rodovia),
                 grav_tipo = factor(grav_tipo, levels = c("Leve", "Média", "Grave", "Gravíssima"))) 
@@ -147,7 +181,14 @@ gravidade_rodovia %>%
   theme(legend.position = c(.9,.5))
 ```
 
-<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+
+O volume de infrações cometidas na DF-075 é substancialmente maior do
+que nas demais rodovias. Outro destaque é que a DF-001 é a rodovia com
+maiores índices de infrações graves e gravíssimas dentre todas as
+analisadas.
+
+#### Infrações por horário
 
 ``` r
 base %>% 
@@ -165,4 +206,8 @@ base %>%
         legend.position = c(.9,.5))
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
+
+É possível ver que infrações Graves e Gravíssimas tem um pico maior no
+horário da manhã e ao final da tarde, enquanto que as Leves e Médias
+apresentam uma certa constância durante o dia.
