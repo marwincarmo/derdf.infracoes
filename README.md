@@ -59,7 +59,7 @@ de acidentes na estrada.
 
 Embora a base apresente uma estrutura em que cada observação se encontra
 em uma única linha, é nas colunas que residem os problemas de
-untidyness.
+*untidyness*.
 
 A começar pelos tipos de veículos infratores, há diversos registros se
 referindo a um mesmo tipo de veículo com grafias diferentes, diferenças
@@ -71,15 +71,15 @@ da infração. Elas se dividem em `auinf_local_rodovia`, `auinf_local_km`,
 `auinf_local_referencia` e `auinf_local_complemento`. Apesar da
 existência das colunas para a divisão dos detalhes do local, são poucos
 registros que a obedecem. Na maior parte, se observa que todas as
-informações relevantes para identificação do local da infraçã estão
+informações relevantes para identificação do local da infração estão
 concatenadas em uma única string na coluna `auinf_local_rodovia`. O
 trabalho principal da faxina será extrair estas informações, colocá-las
 em sua devida coluna e padronizar a grafia das siglas, complementos e
 referências, já que também estão registradas das mais variadas formas.
 
 A base de dados também fornece colunas de latitude e longitude. No
-entanto, além de raros os registros os que estão disponíveis não parecem
-fornecer uma localização válida.
+entanto, além de raros os registros, os que estão disponíveis não
+parecem fornecer uma localização válida.
 
 ### Fluxo da faxina: objetivos do script
 
@@ -106,7 +106,7 @@ O detalhamento do local das infrações possibilitado pela faxina na base
 original permite que se analise com detalhes informações sobre
 categorias de veículos e tipos de infratores, bem como possibilita a
 identificação de pontos específicos das rodovias onde se observam as
-infrações e a gravidade das mesmas. O formato original da base de dados,
+infrações e a gravidade das mesmas. O formato original da base de dados
 impossibilitava que o usuário tivesse acesso a este tipo de informação
 detalhada.
 
@@ -185,7 +185,7 @@ gravidade_rodovia %>%
 
 O volume de infrações cometidas na DF-075 é substancialmente maior do
 que nas demais rodovias. Outro destaque é que a DF-001 é a rodovia com
-maiores índices de infrações graves e gravíssimas dentre todas as
+maiores índices de infrações Graves e Gravíssimas dentre todas as
 analisadas.
 
 #### Infrações por horário
@@ -197,6 +197,7 @@ base %>%
   geom_freqpoly(mapping = aes(colour = grav_tipo), bins = 50) +
   scale_x_time(breaks = hms::hms(hours = seq(0, 24, 4))) +
   scale_color_viridis_d(option = "A", begin = .9, end = .1) +
+  guides(colour = guide_legend(reverse = TRUE)) +
   theme_minimal(12) +
   labs(x = "", colour = "Infração") +
   theme(axis.title.y=element_blank(),
