@@ -105,3 +105,21 @@ gravidade_rodovia %>%
   theme(legend.position = c(.9,.5))
 ```
 
+```{r}
+base %>% 
+  mutate(grav_tipo = factor(grav_tipo, levels = c("Leve", "Média", "Grave", "Gravíssima"))) %>% 
+  ggplot(aes(x = hora_cometimento, y = ..density..)) +
+  geom_freqpoly(mapping = aes(colour = grav_tipo), bins = 50) +
+  scale_x_time(breaks = hms::hms(hours = seq(0, 24, 4))) +
+  scale_color_viridis_d(option = "A", begin = .9, end = .1) +
+  theme_minimal(12) +
+  labs(x = "", colour = "Infração") +
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(), 
+        axis.ticks.y=element_blank(),
+        axis.line.y = element_blank(),
+        legend.position = c(.9,.5))
+
+```
+
+
